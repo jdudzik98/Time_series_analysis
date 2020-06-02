@@ -1,5 +1,5 @@
 ---
-title: "Report"
+title: "Time Series Analysis"
 author: "Jan Dudzik"
 date: "6/2/2020"
 output: html_document
@@ -9,22 +9,29 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# ARIMA model
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+### 1. Data description
+Provided data shows Price Index of goods and services in Poland between years 2000 and 2020. The basic prices value reflects to December of 1999, and is set as a 100, so basically, every record is a mean value of selected month's prices in goods and services divided by mean value of this sector's prices in December 1999, and multiplied by 100.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r}
+library(readxl)
+prices_data <- read_excel("Szereg_niesezon.xls")
 
-```{r cars}
-summary(cars)
+prices= ts(data=prices_data$TOWARYUSLUGI, frequency = 12,             
+             start=c(2000,1), end=c(2020,2)) 
+
+
 ```
 
-## Including Plots
+### 2. Initial plots
+```{r, echo=FALSE}
+library(ggplot2)
+library(ggfortify)
 
-You can also embed plots, for example:
+autoplot(prices, main = "Level of prices (December 1999 = 100)", ts.colour = 'red',xlab="Year", ylab="Prices level", lty=3)
+autoplot(diff(prices), main = "First differences in prices level (December 1999 = 100)", ts.colour = 'blue',xlab="Year", ylab="Difference of price level", lty=3)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+According to initial plots, however this particular time series seems to be non-stationary, the first differences could be. Therefore I will examine that by appropriate test
