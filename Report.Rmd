@@ -14,7 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # ARIMA model
 
 ### 1. Data description
-Provided data shows Price Index of goods and services in Poland between years 2000 and 2020. The basic prices value reflects to December of 1999, and is set as a 100, so basically, every record is a mean value of selected month's prices in goods and services divided by mean value of this sector's prices in December 1999, and multiplied by 100.
+Provided data shows the Price Index of goods and services in Poland between the years 2000 and 2020. The basic prices value reflects December of 1999 and is set as a 100, so basically, every record is a mean value of selected month’s prices in goods and services divided by the mean value of this sector’s prices in December 1999 and multiplied by 100.
+
 
 ```{r}
 library(readxl)
@@ -35,23 +36,45 @@ autoplot(diff(prices), main = "First differences in prices level (December 1999 
 
 ```
 
-According to initial plots, however this particular time series seems to be non-stationary, the first differences could be. Therefore I will examine that by Dickey-Fuller test.
+According to initial plots, however, this particular time series seems to be non-stationary, the first differences could be. Therefore I will examine that by the Dickey-Fuller test.
 
 ### 2. Integration level
-
-```{r, echo = FALSE}
+```{r include=FALSE}
+library(forecast)
 source("functions04.R")
 testdf(prices, 4)
 
 ``` 
+```{r}
 
-Analysis of original time series has proven, that according to Dickey-Fuller Test, it is not stationary (p-value > 10 percent), that proves visual conclusion. What is more, according to Breusch-Godfrey test with no lags, the null hypothesis about no autocorrelation of residuals is rejected.
+testdf(prices, 4)
 
+``` 
+
+Analysis of original time series has proven, that according to the Dickey-Fuller Test, it is not stationary (p-value > 10 percent), that proves visual conclusion. What is more, according to the Breusch-Godfrey test with no lags, the null hypothesis about no autocorrelation of residuals is rejected.
 ```{r, echo = FALSE}
 testdf(diff(prices), 4)
 
 ``` 
 
-Statistical tests of first differences of selected time series proves, that according to Dickey-Fuller test, we cannot reject null hypothesis of non-stationarity (p-value < 1 percent), and by p-value = 0.7993760 of Breusch-Godfrey test, there is no autocorrelation between residuals in this model 
+Statistical tests of first differences of selected time series prove, that according to Dickey-Fuller test, we cannot reject the null hypothesis of non-stationarity (p-value < 1 percent), and by p-value = 0.7993760 of Breusch-Godfrey test, there is no autocorrelation between residuals in this model
 
+```{r include=FALSE}
+library(forecast)
 
+``` 
+```{r}
+
+ggAcf(diff(prices), lag.max = 30)
+
+``` 
+
+Although using the AutoCorrelation Function, we can spot a seasonality in this time series. This conjecture is proven by W-O test (Webel Ollech)
+
+```{r}
+
+library(seastests)
+summary(wo(prices))
+``` 
+
+T
