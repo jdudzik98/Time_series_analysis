@@ -2,7 +2,9 @@
 title: "Time Series Analysis"
 author: "Jan Dudzik"
 date: "6/2/2020"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -24,7 +26,6 @@ prices= ts(data=prices_data$TOWARYUSLUGI, frequency = 12,
 
 ```
 
-### 2. Initial plots
 ```{r, echo=FALSE}
 library(ggplot2)
 library(ggfortify)
@@ -34,4 +35,23 @@ autoplot(diff(prices), main = "First differences in prices level (December 1999 
 
 ```
 
-According to initial plots, however this particular time series seems to be non-stationary, the first differences could be. Therefore I will examine that by appropriate test
+According to initial plots, however this particular time series seems to be non-stationary, the first differences could be. Therefore I will examine that by Dickey-Fuller test.
+
+### 2. Integration level
+
+```{r, echo = FALSE}
+source("functions04.R")
+testdf(prices, 4)
+
+``` 
+
+Analysis of original time series has proven, that according to Dickey-Fuller Test, it is not stationary (p-value > 10 percent), that proves visual conclusion. What is more, according to Breusch-Godfrey test with no lags, the null hypothesis about no autocorrelation of residuals is rejected.
+
+```{r, echo = FALSE}
+testdf(diff(prices), 4)
+
+``` 
+
+Statistical tests of first differences of selected time series proves, that according to Dickey-Fuller test, we cannot reject null hypothesis of non-stationarity (p-value < 1 percent), and by p-value = 0.7993760 of Breusch-Godfrey test, there is no autocorrelation between residuals in this model 
+
+
