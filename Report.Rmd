@@ -2,9 +2,10 @@
 title: "Time Series Analysis"
 author: "Jan Dudzik"
 date: "6/2/2020"
-output: 
-  html_document: 
+output:
+  html_document:
     keep_md: yes
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -77,4 +78,48 @@ library(seastests)
 summary(wo(prices))
 ``` 
 
-T
+# Second ARIMA model
+
+As the first task was to analyse non-seasonal time series, we need to change data. Therefore I will use monthly mean of 3 month interest rate in Sweden. Time series comes from Eurostat database.
+
+
+```{r}
+
+library(readr)
+IR <- read_delim("IR.csv", ",", escape_double = FALSE, 
+                    trim_ws = TRUE)
+Sweden= ts(data=IR$Value, frequency = 12,             
+           start=c(1993,1), end=c(2019,12)) 
+
+
+```
+```{r, echo=FALSE}
+
+autoplot(Sweden, main = "3-month interest rate in Sweden - mean monthly value", xlab="Year", ylab="Interest rate", lty=1)
+
+
+summary(wo(Sweden))
+
+``` 
+
+We can spot no seasonality by W-O test. Therefore we initiate ARIMA model analysis.
+
+### 2.1 Integration level
+
+```{r}
+testdf(Sweden,4)
+``` 
+
+Despite stationarity reported by Dickey-Fuller test in original time series, we cannot rely on that test, because autocorrelation between residuals has been spotted by Breusch-Godfrey test and that violates assumptions of Dickey-Fuller test.
+
+```{r}
+testdf(diff(Sweden),4)
+``` 
+
+Using first differences of Sweden interest rates time series, with p-value = 0.8369650 we don't reject null hypothesis of no autocorrelation between residuals, and reject null hypothesis of Dickey-Fuller test (p-value < 1percent) about non-stationarity of time series. Therefore we conclude, that first differences are a stationary time series. We will confirm that using Kwiatkowski-Phillips-Schmidt-Shin test (KPSS)
+
+```{r}
+library(tseries)
+kpss.test(diff(Sweden))
+``` 
+
