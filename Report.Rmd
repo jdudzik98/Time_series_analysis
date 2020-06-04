@@ -80,7 +80,7 @@ summary(wo(prices))
 
 # Second ARIMA model
 
-As the first task was to analyse non-seasonal time series, we need to change data. Therefore I will use monthly mean of 3 month interest rate in Sweden. Time series comes from Eurostat database.
+As the first task was to analyze the non-seasonal time series, we need to change data. Therefore I will use a monthly mean of 3-month interest rate in Sweden. Time series comes from the Eurostat database.
 
 
 ```{r}
@@ -110,16 +110,31 @@ We can spot no seasonality by W-O test. Therefore we initiate ARIMA model analys
 testdf(Sweden,4)
 ``` 
 
-Despite stationarity reported by Dickey-Fuller test in original time series, we cannot rely on that test, because autocorrelation between residuals has been spotted by Breusch-Godfrey test and that violates assumptions of Dickey-Fuller test.
-
+Despite stationarity reported by the Dickey-Fuller test in the original time series, we cannot rely on that test, because autocorrelation between residuals has been spotted by the Breusch-Godfrey test and that violates assumptions of Dickey-Fuller test.
 ```{r}
 testdf(diff(Sweden),4)
 ``` 
 
-Using first differences of Sweden interest rates time series, with p-value = 0.8369650 we don't reject null hypothesis of no autocorrelation between residuals, and reject null hypothesis of Dickey-Fuller test (p-value < 1percent) about non-stationarity of time series. Therefore we conclude, that first differences are a stationary time series. We will confirm that using Kwiatkowski-Phillips-Schmidt-Shin test (KPSS)
+Using the first differences of Sweden interest rates time series, with p-value = 0.8369650 we don't reject the null hypothesis of no autocorrelation between residuals and reject the null hypothesis of Dickey-Fuller test (p-value < 1percent) about non-stationarity of time series. Therefore we conclude, that the first differences are a stationary time series. We will confirm that using Kwiatkowski-Phillips-Schmidt-Shin test (KPSS)
+
 
 ```{r}
 library(tseries)
 kpss.test(diff(Sweden))
 ``` 
+
+By not rejecting the null hypothesis of KPSS test with p-value = 0.1, we confirm stationarity of first differences
+  
+### 2.2 Parameters p and q identification
+
+```{r}
+
+ggAcf(diff(Sweden), lag.max = 30)
+ggPacf(diff(Sweden), lag.max = 30)
+
+``` 
+
+Auto Correlation Function suggests Moving Average with q parameter = 7, and Partial Auto Correlation Function suggests p = 3. In consequence, we will analyze maximal model ARIMA(3,1,7) and respectively lower parameters.
+
+
 

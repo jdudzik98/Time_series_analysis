@@ -2,9 +2,10 @@
 title: "Time Series Analysis"
 author: "Jan Dudzik"
 date: "6/2/2020"
-output: 
-  html_document: 
+output:
+  html_document:
     keep_md: yes
+  pdf_document: default
 ---
 
 
@@ -82,4 +83,118 @@ summary(wo(prices))
 ## The WO - test identifies seasonality
 ```
 
-T
+# Second ARIMA model
+
+As the first task was to analyze the non-seasonal time series, we need to change data. Therefore I will use a monthly mean of 3-month interest rate in Sweden. Time series comes from the Eurostat database.
+
+
+
+```r
+library(readr)
+IR <- read_delim("IR.csv", ",", escape_double = FALSE, 
+                    trim_ws = TRUE)
+```
+
+```
+## Parsed with column specification:
+## cols(
+##   TIME = col_character(),
+##   GEO = col_character(),
+##   S_ADJ = col_character(),
+##   P_ADJ = col_character(),
+##   INDIC = col_character(),
+##   Value = col_double(),
+##   `Flag and Footnotes` = col_logical()
+## )
+```
+
+```r
+Sweden= ts(data=IR$Value, frequency = 12,             
+           start=c(1993,1), end=c(2019,12)) 
+```
+![](Report_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+
+```
+## Test used:  WO 
+##  
+## Test statistic:  0 
+## P-value:  1 1 0.8918526 
+##  
+## The WO - test does not identify  seasonality
+```
+
+We can spot no seasonality by W-O test. Therefore we initiate ARIMA model analysis.
+
+### 2.1 Integration level
+
+
+```r
+testdf(Sweden,4)
+```
+
+```
+##   order       adf  p_adf    bgodfrey         p_bg
+## 2     0 -3.179772  <5pct 96.53549739 8.765804e-23
+## 3     1 -2.169803 >10pct  0.03504696 8.514973e-01
+## 4     2 -2.439671 >10pct  0.03997574 8.415280e-01
+## 5     3 -2.467527 >10pct  0.11926454 7.298335e-01
+## 6     4 -1.832769 >10pct  0.07683363 7.816351e-01
+```
+
+Despite stationarity reported by the Dickey-Fuller test in the original time series, we cannot rely on that test, because autocorrelation between residuals has been spotted by the Breusch-Godfrey test and that violates assumptions of Dickey-Fuller test.
+
+```r
+testdf(diff(Sweden),4)
+```
+
+```
+##   order       adf p_adf     bgodfrey      p_bg
+## 2     0 -9.770692 <1pct 0.0423442145 0.8369650
+## 3     1 -8.006240 <1pct 0.0265402993 0.8705878
+## 4     2 -5.836524 <1pct 0.0696725564 0.7918141
+## 5     3 -6.462094 <1pct 0.0539899749 0.8162604
+## 6     4 -5.749978 <1pct 0.0009232136 0.9757605
+```
+
+Using the first differences of Sweden interest rates time series, with p-value = 0.8369650 we don't reject the null hypothesis of no autocorrelation between residuals and reject the null hypothesis of Dickey-Fuller test (p-value < 1percent) about non-stationarity of time series. Therefore we conclude, that the first differences are a stationary time series. We will confirm that using Kwiatkowski-Phillips-Schmidt-Shin test (KPSS)
+
+
+
+```r
+library(tseries)
+kpss.test(diff(Sweden))
+```
+
+```
+## Warning in kpss.test(diff(Sweden)): p-value greater than printed p-value
+```
+
+```
+## 
+## 	KPSS Test for Level Stationarity
+## 
+## data:  diff(Sweden)
+## KPSS Level = 0.18489, Truncation lag parameter = 5, p-value = 0.1
+```
+
+By not rejecting the null hypothesis of KPSS test with p-value = 0.1, we confirm stationarity of first differences
+  
+### 2.2 Parameters p and q identification
+
+
+```r
+ggAcf(diff(Sweden), lag.max = 30)
+```
+
+![](Report_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+
+```r
+ggPacf(diff(Sweden), lag.max = 30)
+```
+
+![](Report_files/figure-html/unnamed-chunk-14-2.png)<!-- -->
+
+Auto Correlation Function suggests Moving Average with q parameter = 7, and Partial Auto Correlation Function suggests p = 3. In consequence, we will analyze maximal model ARIMA(3,1,7) and respectively lower parameters.
+
+
+
