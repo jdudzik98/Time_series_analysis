@@ -3,89 +3,29 @@ title: "Time Series Analysis"
 author: "Jan Dudzik"
 date: "6/2/2020"
 output:
+  pdf_document: default
+  word_document: default
   html_document:
     keep_md: yes
-  pdf_document: default
 ---
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 # ARIMA model
 
-### 1. Data description
-
-##### Provided data shows the Price Index of goods and services in Poland between the years 2000 and 2020. The basic prices value reflects December of 1999 and is set as a 100, so basically, every record is a mean value of selected month’s prices in goods and services divided by the mean value of this sector’s prices in December 1999 and multiplied by 100.
-
-
-```{r}
-library(readxl)
-prices_data <- read_excel("Szereg_niesezon.xls")
-
-prices= ts(data=prices_data$TOWARYUSLUGI, frequency = 12,             
-             start=c(2000,1), end=c(2020,2)) 
-
-
-```
+##### As the first task was to analyze the non-seasonal time series, monthly mean of 3-month interest rate in Sweden will be used. Time series comes from the Eurostat database.
 
 ```{r, echo=FALSE}
+library(forecast)
+library(seastests)
 library(ggplot2)
 library(ggfortify)
-
-autoplot(prices, main = "Level of prices (December 1999 = 100)", ts.colour = 'red',xlab="Year", ylab="Prices level", lty=3)
-autoplot(diff(prices), main = "First differences in prices level (December 1999 = 100)", ts.colour = 'blue',xlab="Year", ylab="Difference of price level", lty=3)
-
-```
-
-##### According to initial plots, however, this particular time series seems to be non-stationary, the first differences could be. Therefore I will examine that by the Dickey-Fuller test.
-
-### 2. Integration level
-```{r include=FALSE}
-library(forecast)
 source("functions04.R")
-testdf(prices, 4)
-
-``` 
-```{r}
-
-testdf(prices, 4)
-
-``` 
-
-##### Analysis of original time series has proven, that according to the Dickey-Fuller Test, it is not stationary (p-value > 10 percent), that proves visual conclusion. What is more, according to the Breusch-Godfrey test with no lags, the null hypothesis about no autocorrelation of residuals is rejected.
-```{r, echo = FALSE}
-testdf(diff(prices), 4)
-
-``` 
-
-##### Statistical tests of first differences of selected time series prove, that according to Dickey-Fuller test, we cannot reject the null hypothesis of non-stationarity (p-value < 1 percent), and by p-value = 0.7993760 of Breusch-Godfrey test, there is no autocorrelation between residuals in this model
-
-```{r include=FALSE}
-library(forecast)
-
-``` 
-```{r}
-
-ggAcf(diff(prices), lag.max = 30)
-
-``` 
-
-##### Although using the AutoCorrelation Function, we can spot a seasonality in this time series. This conjecture is proven by W-O test (Webel Ollech)
-
-```{r}
-
-library(seastests)
-summary(wo(prices))
-``` 
-
-# Second ARIMA model
-
-##### As the first task was to analyze the non-seasonal time series, we need to change data. Therefore I will use a monthly mean of 3-month interest rate in Sweden. Time series comes from the Eurostat database.
-
-
-```{r}
-
 library(readr)
 IR <- read_delim("IR.csv", ",", escape_double = FALSE, 
                     trim_ws = TRUE)
@@ -108,19 +48,19 @@ summary(wo(Sweden))
 
 ### 2.1 Integration level
 
-```{r}
+```{r, echo=FALSE}
 testdf(Sweden,4)
 ``` 
 
 ##### Despite stationarity reported by the Dickey-Fuller test in the original time series, we cannot rely on that test, because autocorrelation between residuals has been spotted by the Breusch-Godfrey test and that violates assumptions of Dickey-Fuller test.
-```{r}
+```{r, echo=FALSE}
 testdf(diff(Sweden),4)
 ``` 
 
 ##### Using the first differences of Sweden interest rates time series, with p-value = 0.8369650 we don't reject the null hypothesis of no autocorrelation between residuals and reject the null hypothesis of Dickey-Fuller test (p-value < 1percent) about non-stationarity of time series. Therefore we conclude, that the first differences are a stationary time series. We will confirm that using Kwiatkowski-Phillips-Schmidt-Shin test (KPSS)
 
 
-```{r}
+```{r, echo=FALSE}
 library(tseries)
 kpss.test(diff(Sweden))
 ``` 
@@ -129,7 +69,7 @@ kpss.test(diff(Sweden))
   
 ### 2.2 Parameters p and q identification
 
-```{r}
+```{r, echo=FALSE}
 ggAcf(diff(Sweden), lag.max = 30)
 ggPacf(diff(Sweden), lag.max = 30)
 
@@ -137,7 +77,7 @@ ggPacf(diff(Sweden), lag.max = 30)
 
 ##### Auto Correlation Function suggests Moving Average with q parameter = 7, and Partial Auto Correlation Function suggests p = 3. In consequence, we will analyze maximal model ARIMA(3,1,7) and respectively lower parameters.
 
-```{r}
+```{r, echo=FALSE}
 ar317 <- Arima(Sweden, order  = c(3,1,7))
 ar316 <- Arima(Sweden, order  = c(3,1,6))
 ar315 <- Arima(Sweden, order  = c(3,1,5))
@@ -177,7 +117,7 @@ ar010 <- Arima(Sweden, order  = c(0,1,0))
 
 ##### Now we need to find the best fitted ARIMA model, by the values of Akaike and Bayesian Information Criterion
 
-```{r}
+```{r, echo=FALSE}
 aic <- AIC(ar317,ar316,ar315,ar314,ar313,ar312,ar311,ar310, ar217,ar216,ar215,ar214,ar213,ar212,ar211,ar210,ar117,ar116,ar115,ar114,ar113,ar112,ar111,ar110,ar017,ar016,ar015,ar014,ar013,ar012,ar011,ar010 )
 head(aic[order(aic$AIC),c(1,2)])
 bic <- BIC(ar317,ar316,ar315,ar314,ar313,ar312,ar311,ar310, ar217,ar216,ar215,ar214,ar213,ar212,ar211,ar210,ar117,ar116,ar115,ar114,ar113,ar112,ar111,ar110,ar017,ar016,ar015,ar014,ar013,ar012,ar011,ar010 )
@@ -186,7 +126,7 @@ head(bic[order(bic$BIC),c(1,2)])
 
 ##### As the ar212 is the best ARIMA model by the Akaike criterion, and second-best with BIC, we can assume that's the best-suited model for this time series. Therefore we need to check if it's residuals can be classified as a White Noise
 
-```{r}
+```{r, echo=FALSE}
 ggAcf(ar212$residuals, lag.max = 30)
 ggPacf(ar212$residuals, lag.max = 30)
 Box.test(ar212$residuals, type = "Ljung-Box", lag = 25)
@@ -240,6 +180,7 @@ stats
 ##### Provided data is a monthly amount of airplane passengers in the United Kingdom between years 1993 and 2019. Data originate from Eurostat database and used variable is Passengers carried, so it reports the sum of people on board of an flights, that originated or destinated in the United Kingdom in the reported month 
 
 ```{r, echo = FALSE}
+library(readxl)
 seasonal <- read_excel("pasażerowieUK.xls")
 passengers = ts(data=seasonal$Liczba, frequency = 12,             
                       start=c(1993,1), end=c(2019,11)) 
@@ -297,7 +238,7 @@ sarima_318_111 <- arima(passengers, order = c(3,1,8), seasonal = list(order = c(
 library(tseries)
 ```
 ```{r, echo = FALSE}
-#auto.arima(passengers, stepwise = TRUE, approximation = FALSE, seasonal = TRUE)
+auto.arima(passengers, stepwise = TRUE, approximation = FALSE, seasonal = TRUE)
 ```
 ##### As the auto.arima function decided, the best fitted model is SARIMA (202),(111),12, so another SARIMA model will be calculated
 
@@ -316,7 +257,7 @@ Box.test(sarima_318_111$residuals, type = "Ljung-Box")
 Box.test(sarima_202_111$residuals, type = "Ljung-Box")
 ```
 
-As Ljung-Box test rejected the null hypothesis of autocorrelations across model's residuals for all SARIMA models (every p-value greater than 0.05), the best model will be chosen by AIC and BIC criterions
+##### As Ljung-Box test rejected the null hypothesis of autocorrelations across model's residuals for all SARIMA models (every p-value greater than 0.05), the best model will be chosen by AIC and BIC criterions
 
 ```{r, echo=FALSE}
 AIC(sarima_312_111, sarima_313_111, sarima_318_111)
@@ -325,4 +266,55 @@ BIC(sarima_312_111, sarima_313_111, sarima_318_111)
 BIC(sarima_202_111)
 ```
 
-The conclusion of Akaike Information Cryterion and Bayesian Information Cryterion is that the best suited model is SARIMA (318),(111),12
+##### The conclusion of Akaike Information Cryterion and Bayesian Information Cryterion is that the best suited model is SARIMA (318),(111),12
+
+### SARIMA prediction 
+##### To predict time series continuation, described by SARIMA models Holt-Winters method will be used. We distinguish two types of this method: additive and multiplicative. Both of the approaches will be examined.
+```{r, echo=FALSE}
+train_data = ts(data=seasonal$Liczba[1:191], frequency = 12,             
+                              start=c(1993,1), end=c(2018,11)) 
+pass.hw.add<-hw(train_data, h=20,seasonal="additive")
+pass.hw.mult<-hw(train_data, h=20,seasonal="multiplicative")
+
+plot(passengers)
+lines(fitted(pass.hw.add), col="orange", lty=2)
+lines(fitted(pass.hw.mult), col="green", lty=2)
+```
+
+##### The plot above shows how well fitted are two applied types of Holt-Winters methods. In next step, prediction based on those models will be generated and examined by MAE, MSE, MAPE and SMAPE statictics. In addition, predictions of SARIMA model will also be examined.
+```{r, echo=FALSE}
+sarima_318_111 <- arima(train_data, order = c(3,1,8), seasonal = list(order = c(1,1,1), period = 12))
+
+forecast.sarima = (forecast(sarima_318_111, h = 12))
+
+holt.test1 = forecast(HoltWinters(train_data, alpha = 0.175, beta = 0.0143, gamma = 0.3223, seasonal = "additive"), h = 12)
+holt.test2 = forecast(HoltWinters(train_data, alpha = 0.1679, beta = 0.0109, gamma = 0.3856, seasonal = "multiplicative"), h = 12)
+
+test_data = ts(data=seasonal$Liczba[192:203], frequency = 12,             
+               start=c(2018,12), end=c(2019,11))
+
+stats <- c("MAE", "MSE","MAPE","SMAPE")
+sarima_stats <- forecast_stats <- c(round(MAE(forecast.sarima$mean, test_data), 5),round(MSE(forecast.sarima$mean, test_data), 5),round(MAPE(forecast.sarima$mean, test_data), 5), round(SMAPE(forecast.sarima$mean, test_data), 5))
+holt_add_stats <- c(round(MAE(holt.test1$mean, test_data), 5), round(MSE(holt.test1$mean, test_data), 5),round(MAPE(holt.test1$mean, test_data), 5),round(SMAPE(holt.test1$mean, test_data), 5))
+holt_mult_stats <- c(round(MAE(holt.test2$mean, test_data), 5), round(MSE(holt.test2$mean, test_data), 5),round(MAPE(holt.test2$mean, test_data), 5),round(SMAPE(holt.test2$mean, test_data), 5))
+
+stats <- rbind(stats, sarima_stats, holt_add_stats, holt_mult_stats)
+stats
+
+```
+
+##### According to MAE, MSE, MAPE and SMAPE statistics, Holt-Winters multiplied method, gaining the lowest score in every statictics, was detected as the best prediction approach. Predicted values of different approaches are shown on the plot below
+
+```{r, echo=FALSE}
+
+plot(passengers, xlim=c(as.Date(2017), as.Date(2020)))
+lines(holt.test2$mean, col = "green", lty = 2)
+lines(holt.test1$mean, col = "yellow", lty = 2)
+lines(forecast.sarima$mean, col = "red", lty = 2)
+legend("topright",
+        legend=c("original values", "Holt-Winters additive", "Holt-Winters multiplicative", "SARIMA forecast"),
+        col=c("black", "green", "yellow", "red"), lty=c(1,2,2,2))
+```
+
+
+##### As a final conclusion, two datasets were examined, time series were recognised as ARIMA (2,1,2) and SARIMA (3,1,8),(1,1,1),12 models and their forecasts were provided by ARIMA forecast, Holt, SARIMA forecast, additive Holt-Winters and multiplicative Holt-Winters methods.
