@@ -15,7 +15,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # ARIMA model
 
 ### 1. Data description
-Provided data shows the Price Index of goods and services in Poland between the years 2000 and 2020. The basic prices value reflects December of 1999 and is set as a 100, so basically, every record is a mean value of selected month’s prices in goods and services divided by the mean value of this sector’s prices in December 1999 and multiplied by 100.
+
+##### Provided data shows the Price Index of goods and services in Poland between the years 2000 and 2020. The basic prices value reflects December of 1999 and is set as a 100, so basically, every record is a mean value of selected month’s prices in goods and services divided by the mean value of this sector’s prices in December 1999 and multiplied by 100.
 
 
 ```{r}
@@ -37,7 +38,7 @@ autoplot(diff(prices), main = "First differences in prices level (December 1999 
 
 ```
 
-According to initial plots, however, this particular time series seems to be non-stationary, the first differences could be. Therefore I will examine that by the Dickey-Fuller test.
+##### According to initial plots, however, this particular time series seems to be non-stationary, the first differences could be. Therefore I will examine that by the Dickey-Fuller test.
 
 ### 2. Integration level
 ```{r include=FALSE}
@@ -52,13 +53,13 @@ testdf(prices, 4)
 
 ``` 
 
-Analysis of original time series has proven, that according to the Dickey-Fuller Test, it is not stationary (p-value > 10 percent), that proves visual conclusion. What is more, according to the Breusch-Godfrey test with no lags, the null hypothesis about no autocorrelation of residuals is rejected.
+##### Analysis of original time series has proven, that according to the Dickey-Fuller Test, it is not stationary (p-value > 10 percent), that proves visual conclusion. What is more, according to the Breusch-Godfrey test with no lags, the null hypothesis about no autocorrelation of residuals is rejected.
 ```{r, echo = FALSE}
 testdf(diff(prices), 4)
 
 ``` 
 
-Statistical tests of first differences of selected time series prove, that according to Dickey-Fuller test, we cannot reject the null hypothesis of non-stationarity (p-value < 1 percent), and by p-value = 0.7993760 of Breusch-Godfrey test, there is no autocorrelation between residuals in this model
+##### Statistical tests of first differences of selected time series prove, that according to Dickey-Fuller test, we cannot reject the null hypothesis of non-stationarity (p-value < 1 percent), and by p-value = 0.7993760 of Breusch-Godfrey test, there is no autocorrelation between residuals in this model
 
 ```{r include=FALSE}
 library(forecast)
@@ -70,7 +71,7 @@ ggAcf(diff(prices), lag.max = 30)
 
 ``` 
 
-Although using the AutoCorrelation Function, we can spot a seasonality in this time series. This conjecture is proven by W-O test (Webel Ollech)
+##### Although using the AutoCorrelation Function, we can spot a seasonality in this time series. This conjecture is proven by W-O test (Webel Ollech)
 
 ```{r}
 
@@ -80,7 +81,7 @@ summary(wo(prices))
 
 # Second ARIMA model
 
-As the first task was to analyze the non-seasonal time series, we need to change data. Therefore I will use a monthly mean of 3-month interest rate in Sweden. Time series comes from the Eurostat database.
+##### As the first task was to analyze the non-seasonal time series, we need to change data. Therefore I will use a monthly mean of 3-month interest rate in Sweden. Time series comes from the Eurostat database.
 
 
 ```{r}
@@ -97,13 +98,13 @@ Sweden= ts(data=IR$Value, frequency = 12,
 
 autoplot(Sweden, main = "3-month interest rate in Sweden - mean monthly value", xlab="Year", ylab="Interest rate", lty=1)
 
-autoplot(diff(Sweden), main = "3-month interest rate in Sweden - mean monthly value", xlab="Year", ylab="Interest rate", lty=1)
+autoplot(diff(Sweden), main = "First difference of 3-month interest rate in Sweden - mean monthly value", xlab="Year", ylab="Interest rate", lty=1)
 
 summary(wo(Sweden))
 
 ``` 
 
-We can spot no seasonality by W-O test. Therefore we initiate ARIMA model analysis.
+##### We can spot no seasonality by W-O test. Therefore we initiate ARIMA model analysis.
 
 ### 2.1 Integration level
 
@@ -111,12 +112,12 @@ We can spot no seasonality by W-O test. Therefore we initiate ARIMA model analys
 testdf(Sweden,4)
 ``` 
 
-Despite stationarity reported by the Dickey-Fuller test in the original time series, we cannot rely on that test, because autocorrelation between residuals has been spotted by the Breusch-Godfrey test and that violates assumptions of Dickey-Fuller test.
+##### Despite stationarity reported by the Dickey-Fuller test in the original time series, we cannot rely on that test, because autocorrelation between residuals has been spotted by the Breusch-Godfrey test and that violates assumptions of Dickey-Fuller test.
 ```{r}
 testdf(diff(Sweden),4)
 ``` 
 
-Using the first differences of Sweden interest rates time series, with p-value = 0.8369650 we don't reject the null hypothesis of no autocorrelation between residuals and reject the null hypothesis of Dickey-Fuller test (p-value < 1percent) about non-stationarity of time series. Therefore we conclude, that the first differences are a stationary time series. We will confirm that using Kwiatkowski-Phillips-Schmidt-Shin test (KPSS)
+##### Using the first differences of Sweden interest rates time series, with p-value = 0.8369650 we don't reject the null hypothesis of no autocorrelation between residuals and reject the null hypothesis of Dickey-Fuller test (p-value < 1percent) about non-stationarity of time series. Therefore we conclude, that the first differences are a stationary time series. We will confirm that using Kwiatkowski-Phillips-Schmidt-Shin test (KPSS)
 
 
 ```{r}
@@ -124,7 +125,7 @@ library(tseries)
 kpss.test(diff(Sweden))
 ``` 
 
-By not rejecting the null hypothesis of KPSS test with p-value = 0.1, we confirm stationarity of first differences
+##### By not rejecting the null hypothesis of KPSS test with p-value = 0.1, we confirm stationarity of first differences
   
 ### 2.2 Parameters p and q identification
 
@@ -134,7 +135,7 @@ ggPacf(diff(Sweden), lag.max = 30)
 
 ``` 
 
-Auto Correlation Function suggests Moving Average with q parameter = 7, and Partial Auto Correlation Function suggests p = 3. In consequence, we will analyze maximal model ARIMA(3,1,7) and respectively lower parameters.
+##### Auto Correlation Function suggests Moving Average with q parameter = 7, and Partial Auto Correlation Function suggests p = 3. In consequence, we will analyze maximal model ARIMA(3,1,7) and respectively lower parameters.
 
 ```{r}
 ar317 <- Arima(Sweden, order  = c(3,1,7))
@@ -174,7 +175,7 @@ ar011 <- Arima(Sweden, order  = c(0,1,1))
 ar010 <- Arima(Sweden, order  = c(0,1,0))
 ```
 
-Now we need to find the best fitted ARIMA model, by the values of Akaike and Bayesiand Information Criterion
+##### Now we need to find the best fitted ARIMA model, by the values of Akaike and Bayesian Information Criterion
 
 ```{r}
 aic <- AIC(ar317,ar316,ar315,ar314,ar313,ar312,ar311,ar310, ar217,ar216,ar215,ar214,ar213,ar212,ar211,ar210,ar117,ar116,ar115,ar114,ar113,ar112,ar111,ar110,ar017,ar016,ar015,ar014,ar013,ar012,ar011,ar010 )
@@ -183,7 +184,7 @@ bic <- BIC(ar317,ar316,ar315,ar314,ar313,ar312,ar311,ar310, ar217,ar216,ar215,ar
 head(bic[order(bic$BIC),c(1,2)])
 ``` 
 
-As the ar212 is the best ARIMA model by the Akaike cryterion, and second best with BIC, we can assume that's the best suited model for this time series. Therefore we need to check if it's residuals can be classified as a White Noise
+##### As the ar212 is the best ARIMA model by the Akaike criterion, and second-best with BIC, we can assume that's the best-suited model for this time series. Therefore we need to check if it's residuals can be classified as a White Noise
 
 ```{r}
 ggAcf(ar212$residuals, lag.max = 30)
@@ -191,3 +192,93 @@ ggPacf(ar212$residuals, lag.max = 30)
 Box.test(ar212$residuals, type = "Ljung-Box", lag = 25)
 ```
 
+##### According to visual analysis and Ljung-Box test, there are no other lags and the model's residuals can be classified as a White Noise (p-value = 0.8375). 
+
+### 2.3 Prediction of the last three periods
+##### As the ARIMA model contains trend, and no seasonality was detected, we can use Holt method in order to predict future values. the prediction will be examined by comparison with ARIMA forecast from forecast library.
+```{r, echo=FALSE}
+
+train_data = ts(data=IR$Value[1:321], frequency = 12,             
+                         start=c(1993,1), end=c(2019,9)) 
+test_data = ts(data=IR$Value[321:324], frequency = 12,             
+                start=c(2019,9), end=c(2019,12)) 
+
+library(forecast)
+par(mfrow = c(1,2))
+holt<-holt(train_data, h=3)
+plot(holt, lty=1, xlim=c(as.Date(2017), as.Date(2020)), main = "")
+lines(test_data, col="black", lty=1)
+
+ar212_in_sample <- Arima(train_data, order  = c(2,1,2))
+forecast = (forecast(ar212_in_sample, h = 3))
+plot(forecast, xlim=c(as.Date(2017), as.Date(2020)), main = "")
+lines(test_data, col="black", lty=1)
+
+```
+
+##### The plot on the left presents prediction of last three period's values generated by Holt method (represented by blue dots) and the real values (black line) of time series, while the plot on the right compares ARIMA forecast with real values. Predictions on both models looks close to the real values, so we will examine their precision by MAE, MSE, MAPE and SMAPE statistics
+
+```{r, include=FALSE}
+library(DescTools)
+stats <- c("MAE", "MSE","MAPE","SMAPE")
+Holt_stats <- forecast_stats <- c(round(MAE(holt$mean, test_data), 5),round(MSE(holt$mean, test_data), 5),round(MAPE(holt$mean, test_data), 5),round(SMAPE(holt$mean, test_data), 5))
+forecast_stats <- c(round(MAE(forecast$mean, test_data), 5),round(MSE(forecast$mean, test_data), 5),round(MAPE(forecast$mean, test_data), 5),round(SMAPE(forecast$mean, test_data), 5))
+stats <- rbind(stats, Holt_stats, forecast_stats)
+stats
+```
+```{r, echo = FALSE}
+
+stats
+```
+
+##### Prediction provided by Holt's method generates smaller Mean Absolute Error, Mean Squared Error and Mean Absolute Percentage Error than ARIMA model, but is a worse prediction according to Symmetric Mean Absolute Percentage Error Statistics
+
+# SARIMA model
+
+### 3.1. Data description
+
+##### Provided data is a monthly amount of airplane passengers in United Kingdom between years 1993 and 2019. Data originate from Eurostat database and used variable is Passengers carried, so it reports sum of people on board of an flights, that originated or destinated in United Kingdom in reported month 
+
+```{r, echo = FALSE}
+seasonal <- read_excel("pasażerowieUK.xls")
+passengers = ts(data=seasonal$Liczba, frequency = 12,             
+                      start=c(1993,1), end=c(2019,11)) 
+
+autoplot(passengers, main = "United Kingdom airplane passengers 1993-2019", ts.colour = 'red',xlab="Year", ylab="Number of passengers", lty=3)
+
+```
+
+##### The plot above represents values of analysed time series. Clearly there exist some seasonality, and definitely there is no stationarity in this time series. Therefore, twelveth differences are used to continue analysis. 
+
+```{r, echo = FALSE}
+d.passengers <- diff(passengers, 12)
+tsdisplay(d.passengers)
+```
+
+##### After using 12th difference, seasonality is hardly spotted, but as the time series is still non - stationary, I use first differences
+
+```{r, echo = FALSE}
+d.d.passengers <- diff(d.passengers, 11)
+tsdisplay(d.d.passengers)
+testdf(d.d.passengers, adf_order = 3)
+kpss.test(d.d.passengers)
+```
+
+##### After using another differencing, time series seems to be stationary, so with usage of Dickey-Fuller test and KPSS test, stationarity is proven. With Breusch-Godfrey test assuring about no autocorrelation of residuals, stationarity is proven by p-value <1 percent of Augmented Dickey-Fuller test. What is more, Kwiatkowski-Phillips-Schmidt-Shin test, with p-value = 0.1, does not reject null hypothesis of stationarity of time series. 
+
+```{r, echo=FALSE}
+
+ggAcf(d.d.passengers, lag.max = 36)
+
+
+```
+
+##### By analysis of 12th lags of AutoCorrelation Function, we can spot promptly descending correlation, so P parameter in seasonal AR model is recognised as 1. By analysis of firs lags, we can spot three significant lags, then p parameter equal to 3 in non-seasonal Auto Regressive model will be considered
+
+```{r, echo=FALSE}
+
+ggPacf(d.d.passengers, lag.max = 36)
+
+```
+
+##### As a result of Partial AutoCorrelation Function analysis, seasonal Moving Average parameter Q is recognised as 1, and non-seasonal MA parameter is pointed out as 2, 3 or 8. 
