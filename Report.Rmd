@@ -97,6 +97,7 @@ Sweden= ts(data=IR$Value, frequency = 12,
 
 autoplot(Sweden, main = "3-month interest rate in Sweden - mean monthly value", xlab="Year", ylab="Interest rate", lty=1)
 
+autoplot(diff(Sweden), main = "3-month interest rate in Sweden - mean monthly value", xlab="Year", ylab="Interest rate", lty=1)
 
 summary(wo(Sweden))
 
@@ -128,7 +129,6 @@ By not rejecting the null hypothesis of KPSS test with p-value = 0.1, we confirm
 ### 2.2 Parameters p and q identification
 
 ```{r}
-
 ggAcf(diff(Sweden), lag.max = 30)
 ggPacf(diff(Sweden), lag.max = 30)
 
@@ -136,5 +136,58 @@ ggPacf(diff(Sweden), lag.max = 30)
 
 Auto Correlation Function suggests Moving Average with q parameter = 7, and Partial Auto Correlation Function suggests p = 3. In consequence, we will analyze maximal model ARIMA(3,1,7) and respectively lower parameters.
 
+```{r}
+ar317 <- Arima(Sweden, order  = c(3,1,7))
+ar316 <- Arima(Sweden, order  = c(3,1,6))
+ar315 <- Arima(Sweden, order  = c(3,1,5))
+ar314 <- Arima(Sweden, order  = c(3,1,4))
+ar313 <- Arima(Sweden, order  = c(3,1,3))
+ar312 <- Arima(Sweden, order  = c(3,1,2))
+ar311 <- Arima(Sweden, order  = c(3,1,1))
+ar310 <- Arima(Sweden, order  = c(3,1,0))
 
+ar217 <- Arima(Sweden, order  = c(2,1,7))
+ar216 <- Arima(Sweden, order  = c(2,1,6))
+ar215 <- Arima(Sweden, order  = c(2,1,5))
+ar214 <- Arima(Sweden, order  = c(2,1,4))
+ar213 <- Arima(Sweden, order  = c(2,1,3))
+ar212 <- Arima(Sweden, order  = c(2,1,2))
+ar211 <- Arima(Sweden, order  = c(2,1,1))
+ar210 <- Arima(Sweden, order  = c(2,1,0))
+
+ar117 <- Arima(Sweden, order  = c(1,1,7))
+ar116 <- Arima(Sweden, order  = c(1,1,6))
+ar115 <- Arima(Sweden, order  = c(1,1,5))
+ar114 <- Arima(Sweden, order  = c(1,1,4))
+ar113 <- Arima(Sweden, order  = c(1,1,3))
+ar112 <- Arima(Sweden, order  = c(1,1,2))
+ar111 <- Arima(Sweden, order  = c(1,1,1))
+ar110 <- Arima(Sweden, order  = c(1,1,0))
+
+ar017 <- Arima(Sweden, order  = c(0,1,7))
+ar016 <- Arima(Sweden, order  = c(0,1,6))
+ar015 <- Arima(Sweden, order  = c(0,1,5))
+ar014 <- Arima(Sweden, order  = c(0,1,4))
+ar013 <- Arima(Sweden, order  = c(0,1,3))
+ar012 <- Arima(Sweden, order  = c(0,1,2))
+ar011 <- Arima(Sweden, order  = c(0,1,1))
+ar010 <- Arima(Sweden, order  = c(0,1,0))
+```
+
+Now we need to find the best fitted ARIMA model, by the values of Akaike and Bayesiand Information Criterion
+
+```{r}
+aic <- AIC(ar317,ar316,ar315,ar314,ar313,ar312,ar311,ar310, ar217,ar216,ar215,ar214,ar213,ar212,ar211,ar210,ar117,ar116,ar115,ar114,ar113,ar112,ar111,ar110,ar017,ar016,ar015,ar014,ar013,ar012,ar011,ar010 )
+head(aic[order(aic$AIC),c(1,2)])
+bic <- BIC(ar317,ar316,ar315,ar314,ar313,ar312,ar311,ar310, ar217,ar216,ar215,ar214,ar213,ar212,ar211,ar210,ar117,ar116,ar115,ar114,ar113,ar112,ar111,ar110,ar017,ar016,ar015,ar014,ar013,ar012,ar011,ar010 )
+head(bic[order(bic$BIC),c(1,2)])
+``` 
+
+As the ar212 is the best ARIMA model by the Akaike cryterion, and second best with BIC, we can assume that's the best suited model for this time series. Therefore we need to check if it's residuals can be classified as a White Noise
+
+```{r}
+ggAcf(ar212$residuals, lag.max = 30)
+ggPacf(ar212$residuals, lag.max = 30)
+Box.test(ar212$residuals, type = "Ljung-Box", lag = 25)
+```
 
