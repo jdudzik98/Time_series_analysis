@@ -319,7 +319,7 @@ Box.test(ar212$residuals, type = "Ljung-Box", lag = 25)
 
 ### 3.1. Data description
 
-##### Provided data is a monthly amount of airplane passengers in United Kingdom between years 1993 and 2019. Data originate from Eurostat database and used variable is Passengers carried, so it reports sum of people on board of an flights, that originated or destinated in United Kingdom in reported month 
+##### Provided data is a monthly amount of airplane passengers in the United Kingdom between years 1993 and 2019. Data originate from Eurostat database and used variable is Passengers carried, so it reports the sum of people on board of an flights, that originated or destinated in the United Kingdom in the reported month 
 
 
 ```
@@ -328,7 +328,7 @@ Box.test(ar212$residuals, type = "Ljung-Box", lag = 25)
 
 ![](Report_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
 
-##### The plot above represents values of analysed time series. Clearly there exist some seasonality, and definitely there is no stationarity in this time series. Therefore, twelveth differences are used to continue analysis. 
+##### The plot above represents the values of the analysed time series. Clearly there exists some seasonality, and definitely there is no stationarity in this time series. Therefore, twelth differences are used to continue analysis. 
 
 ![](Report_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
 
@@ -356,12 +356,84 @@ Box.test(ar212$residuals, type = "Ljung-Box", lag = 25)
 ## KPSS Level = 0.11477, Truncation lag parameter = 5, p-value = 0.1
 ```
 
-##### After using another differencing, time series seems to be stationary, so with usage of Dickey-Fuller test and KPSS test, stationarity is proven. With Breusch-Godfrey test assuring about no autocorrelation of residuals, stationarity is proven by p-value <1 percent of Augmented Dickey-Fuller test. What is more, Kwiatkowski-Phillips-Schmidt-Shin test, with p-value = 0.1, does not reject null hypothesis of stationarity of time series. 
+##### After using another differencing, time series seems to be stationary, so with the usage of the Dickey-Fuller test and KPSS test, stationarity is proven. With Breusch-Godfrey test assuring about no autocorrelation of residuals, stationarity is proven by p-value <1 percent of the Augmented Dickey-Fuller test. What is more, the Kwiatkowski-Phillips-Schmidt-Shin test, with p-value = 0.1, does not reject the null hypothesis of stationarity of time series. 
 
 ![](Report_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
 
-##### By analysis of 12th lags of AutoCorrelation Function, we can spot promptly descending correlation, so P parameter in seasonal AR model is recognised as 1. By analysis of firs lags, we can spot three significant lags, then p parameter equal to 3 in non-seasonal Auto Regressive model will be considered
+##### By analysis of 12th lags of AutoCorrelation Function, we can spot promptly descending correlation, so the P parameter in seasonal AR model is recognized as 1. By analysis of firs lags, we can spot three significant lags, then p parameter equal to 3 in non-seasonal Auto-Regressive model will be considered
 
 ![](Report_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 
-##### As a result of Partial AutoCorrelation Function analysis, seasonal Moving Average parameter Q is recognised as 1, and non-seasonal MA parameter is pointed out as 2, 3 or 8. 
+##### As a result of Partial AutoCorrelation Function analysis, seasonal Moving Average parameter Q is recognized as 1, and the non-seasonal MA parameter is pointed out as 2, 3, or 8. 
+
+
+
+##### Three SARIMA models are considered: SARIMA (312),(111),12; SARIMA (313),(111),12 and SARIMA (318),(111),12. 
+##### Built-in Auto Arima function with seasonality will be used as an another option to consider
+
+
+##### As the auto.arima function decided, the best fitted model is SARIMA (202),(111),12, so another SARIMA model will be calculated
+
+
+
+##### All models residuals randomness will be tested by Ljung-Box test
+
+
+```
+## 
+## 	Box-Ljung test
+## 
+## data:  sarima_312_111$residuals
+## X-squared = 0.0018975, df = 1, p-value = 0.9653
+```
+
+```
+## 
+## 	Box-Ljung test
+## 
+## data:  sarima_313_111$residuals
+## X-squared = 0.0022202, df = 1, p-value = 0.9624
+```
+
+```
+## 
+## 	Box-Ljung test
+## 
+## data:  sarima_318_111$residuals
+## X-squared = 0.020637, df = 1, p-value = 0.8858
+```
+
+```
+## 
+## 	Box-Ljung test
+## 
+## data:  sarima_202_111$residuals
+## X-squared = 0.034807, df = 1, p-value = 0.852
+```
+
+As Ljung-Box test rejected the null hypothesis of autocorrelations across model's residuals for all SARIMA models (every p-value greater than 0.05), the best model will be chosen by AIC and BIC criterions
+
+
+```
+##                df      AIC
+## sarima_312_111  8 7863.292
+## sarima_313_111  9 7865.311
+## sarima_318_111 14 7838.675
+```
+
+```
+## [1] 7884.133
+```
+
+```
+##                df      BIC
+## sarima_312_111  8 7893.184
+## sarima_313_111  9 7898.940
+## sarima_318_111 14 7890.987
+```
+
+```
+## [1] 7910.312
+```
+
+The conclusion of Akaike Information Cryterion and Bayesian Information Cryterion is that the best suited model is SARIMA (318),(111),12

@@ -237,7 +237,7 @@ stats
 
 ### 3.1. Data description
 
-##### Provided data is a monthly amount of airplane passengers in United Kingdom between years 1993 and 2019. Data originate from Eurostat database and used variable is Passengers carried, so it reports sum of people on board of an flights, that originated or destinated in United Kingdom in reported month 
+##### Provided data is a monthly amount of airplane passengers in the United Kingdom between years 1993 and 2019. Data originate from Eurostat database and used variable is Passengers carried, so it reports the sum of people on board of an flights, that originated or destinated in the United Kingdom in the reported month 
 
 ```{r, echo = FALSE}
 seasonal <- read_excel("pasażerowieUK.xls")
@@ -248,7 +248,7 @@ autoplot(passengers, main = "United Kingdom airplane passengers 1993-2019", ts.c
 
 ```
 
-##### The plot above represents values of analysed time series. Clearly there exist some seasonality, and definitely there is no stationarity in this time series. Therefore, twelveth differences are used to continue analysis. 
+##### The plot above represents the values of the analysed time series. Clearly there exists some seasonality, and definitely there is no stationarity in this time series. Therefore, twelth differences are used to continue analysis. 
 
 ```{r, echo = FALSE}
 d.passengers <- diff(passengers, 12)
@@ -264,7 +264,7 @@ testdf(d.d.passengers, adf_order = 3)
 kpss.test(d.d.passengers)
 ```
 
-##### After using another differencing, time series seems to be stationary, so with usage of Dickey-Fuller test and KPSS test, stationarity is proven. With Breusch-Godfrey test assuring about no autocorrelation of residuals, stationarity is proven by p-value <1 percent of Augmented Dickey-Fuller test. What is more, Kwiatkowski-Phillips-Schmidt-Shin test, with p-value = 0.1, does not reject null hypothesis of stationarity of time series. 
+##### After using another differencing, time series seems to be stationary, so with the usage of the Dickey-Fuller test and KPSS test, stationarity is proven. With Breusch-Godfrey test assuring about no autocorrelation of residuals, stationarity is proven by p-value <1 percent of the Augmented Dickey-Fuller test. What is more, the Kwiatkowski-Phillips-Schmidt-Shin test, with p-value = 0.1, does not reject the null hypothesis of stationarity of time series. 
 
 ```{r, echo=FALSE}
 
@@ -273,7 +273,7 @@ ggAcf(d.d.passengers, lag.max = 36)
 
 ```
 
-##### By analysis of 12th lags of AutoCorrelation Function, we can spot promptly descending correlation, so P parameter in seasonal AR model is recognised as 1. By analysis of firs lags, we can spot three significant lags, then p parameter equal to 3 in non-seasonal Auto Regressive model will be considered
+##### By analysis of 12th lags of AutoCorrelation Function, we can spot promptly descending correlation, so the P parameter in seasonal AR model is recognized as 1. By analysis of firs lags, we can spot three significant lags, then p parameter equal to 3 in non-seasonal Auto-Regressive model will be considered
 
 ```{r, echo=FALSE}
 
@@ -281,4 +281,48 @@ ggPacf(d.d.passengers, lag.max = 36)
 
 ```
 
-##### As a result of Partial AutoCorrelation Function analysis, seasonal Moving Average parameter Q is recognised as 1, and non-seasonal MA parameter is pointed out as 2, 3 or 8. 
+##### As a result of Partial AutoCorrelation Function analysis, seasonal Moving Average parameter Q is recognized as 1, and the non-seasonal MA parameter is pointed out as 2, 3, or 8. 
+
+
+```{r, echo = FALSE}
+
+sarima_312_111 <- arima(passengers, order = c(3,1,2), seasonal = list(order = c(1,1,1), period = 12))
+sarima_313_111 <- arima(passengers, order = c(3,1,3), seasonal = list(order = c(1,1,1), period = 12))
+sarima_318_111 <- arima(passengers, order = c(3,1,8), seasonal = list(order = c(1,1,1), period = 12))
+
+```
+##### Three SARIMA models are considered: SARIMA (312),(111),12; SARIMA (313),(111),12 and SARIMA (318),(111),12. 
+##### Built-in Auto Arima function with seasonality will be used as an another option to consider
+```{r, include=FALSE}
+library(tseries)
+```
+```{r, echo = FALSE}
+#auto.arima(passengers, stepwise = TRUE, approximation = FALSE, seasonal = TRUE)
+```
+##### As the auto.arima function decided, the best fitted model is SARIMA (202),(111),12, so another SARIMA model will be calculated
+
+```{r, echo= FALSE}
+
+sarima_202_111 <- arima(passengers, order = c(2,0,2), seasonal = list(order = c(1,1,1), period = 12))
+
+```
+
+##### All models residuals randomness will be tested by Ljung-Box test
+
+```{r, echo=FALSE}
+Box.test(sarima_312_111$residuals, type = "Ljung-Box")
+Box.test(sarima_313_111$residuals, type = "Ljung-Box")
+Box.test(sarima_318_111$residuals, type = "Ljung-Box")
+Box.test(sarima_202_111$residuals, type = "Ljung-Box")
+```
+
+As Ljung-Box test rejected the null hypothesis of autocorrelations across model's residuals for all SARIMA models (every p-value greater than 0.05), the best model will be chosen by AIC and BIC criterions
+
+```{r, echo=FALSE}
+AIC(sarima_312_111, sarima_313_111, sarima_318_111)
+AIC(sarima_202_111)
+BIC(sarima_312_111, sarima_313_111, sarima_318_111)
+BIC(sarima_202_111)
+```
+
+The conclusion of Akaike Information Cryterion and Bayesian Information Cryterion is that the best suited model is SARIMA (318),(111),12
