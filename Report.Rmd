@@ -4,9 +4,7 @@ author: "Jan Dudzik"
 date: "6/2/2020"
 output:
   pdf_document: default
-  word_document: default
-  html_document:
-    keep_md: yes
+  keep_md: yes
 ---
 
 
@@ -18,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # ARIMA model
 
-##### As the first task was to analyze the non-seasonal time series, monthly mean of 3-month interest rate in Sweden will be used. Time series comes from the Eurostat database.
+##### As the first task was to analyze the non-seasonal time series, monthly mean of 3 month interest rate in Sweden will be used. Time series comes from the Eurostat database.
 
 ```{r, echo=FALSE}
 library(forecast)
